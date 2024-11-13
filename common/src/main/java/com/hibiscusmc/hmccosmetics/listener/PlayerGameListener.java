@@ -400,7 +400,7 @@ public class PlayerGameListener implements Listener {
             CosmeticUser user = CosmeticUsers.getUser(player);
             if (user == null) return;
 
-            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(HMCCosmeticsPlugin.getInstance(), user::respawnBackpack, 1);
+            FoliaScheduler.runTaskOnInit(HMCCosmeticsPlugin.getInstance(), user::respawnBackpack);
 		}
 	}
 
@@ -409,8 +409,7 @@ public class PlayerGameListener implements Listener {
 		if (event.getDismounted() instanceof Player player) {
             CosmeticUser user = CosmeticUsers.getUser(player);
             if (user == null) return;
-
-            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(HMCCosmeticsPlugin.getInstance(), user::respawnBackpack, 1);
+            FoliaScheduler.runTaskOnInit(HMCCosmeticsPlugin.getInstance(), user::respawnBackpack);
 		}
 	}
 

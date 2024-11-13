@@ -471,21 +471,25 @@ public class CosmeticUser {
     }
 
     public void respawnBackpack() {
-        if (!hasCosmeticInSlot(CosmeticSlot.BACKPACK)) return;
-        final Cosmetic cosmetic = getCosmetic(CosmeticSlot.BACKPACK);
-        despawnBackpack();
-        if (!hiddenReason.isEmpty()) return;
-        spawnBackpack((CosmeticBackpackType) cosmetic);
-        MessagesUtil.sendDebugMessages("Respawned Backpack for " + getEntity().getName());
+        FoliaScheduler.getEntityScheduler().run(getEntity(),HMCCosmeticsPlugin.getInstance(),(t) -> {
+            if (!hasCosmeticInSlot(CosmeticSlot.BACKPACK)) return;
+            final Cosmetic cosmetic = getCosmetic(CosmeticSlot.BACKPACK);
+            despawnBackpack();
+            if (!hiddenReason.isEmpty()) return;
+            spawnBackpack((CosmeticBackpackType) cosmetic);
+            MessagesUtil.sendDebugMessages("Respawned Backpack for " + getEntity().getName());
+        },null);
     }
 
     public void respawnBalloon() {
-        if (!hasCosmeticInSlot(CosmeticSlot.BALLOON)) return;
-        final Cosmetic cosmetic = getCosmetic(CosmeticSlot.BALLOON);
-        despawnBalloon();
-        if (!hiddenReason.isEmpty()) return;
-        spawnBalloon((CosmeticBalloonType) cosmetic);
-        MessagesUtil.sendDebugMessages("Respawned Balloon for " + getEntity().getName());
+        FoliaScheduler.getEntityScheduler().run(getEntity(),HMCCosmeticsPlugin.getInstance(),(t) -> {
+            if (!hasCosmeticInSlot(CosmeticSlot.BALLOON)) return;
+            final Cosmetic cosmetic = getCosmetic(CosmeticSlot.BALLOON);
+            despawnBalloon();
+            if (!hiddenReason.isEmpty()) return;
+            spawnBalloon((CosmeticBalloonType) cosmetic);
+            MessagesUtil.sendDebugMessages("Respawned Balloon for " + getEntity().getName());
+        },null);
     }
 
     public void removeArmor(CosmeticSlot slot) {
