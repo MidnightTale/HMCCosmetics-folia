@@ -28,12 +28,14 @@ public class HMCCPlayerUtils {
         }
         return new WrappedSignedProperty("textures", skinData.getValue(), skinData.getSignature());
     }
-
+    // Temporary fix
+    // Look for rewrite
     @NotNull
     public static List<Player> getNearbyPlayers(@NotNull Player player) {
         return new ArrayList<>(Bukkit.getOnlinePlayers());
     }
-
+    // Temporary fix
+    // Look for rewrite
     @NotNull
     public static List<Player> getNearbyPlayers(@NotNull Location location) {
         return new ArrayList<>(Bukkit.getOnlinePlayers());
