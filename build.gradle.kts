@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.hibiscusmc"
-version = "2.7.4-DEV"
+version = "2.7.4-DEV-Folia"
 
 allprojects {
     apply(plugin = "java")
@@ -66,6 +66,14 @@ allprojects {
 
         // Hibiscus Commons
         maven("https://repo.hibiscusmc.com/releases")
+
+        // PacketEvents
+        maven("https://repo.codemc.io/repository/maven-releases/")
+
+        maven("https://repo.codemc.io/repository/maven-snapshots/")
+
+        maven("https://jitpack.io")
+
     }
 
     dependencies {
@@ -81,13 +89,15 @@ allprojects {
         //compileOnly("it.unimi.dsi:fastutil:8.5.14")
         compileOnly("org.projectlombok:lombok:1.18.34")
         compileOnly("me.lojosho:HibiscusCommons:0.4.9")
+        compileOnly("com.github.retrooper:packetevents-spigot:2.6.0")
 
         // Handled by Spigot Library Loader
         compileOnly("net.kyori:adventure-api:4.17.0")
         compileOnly("net.kyori:adventure-text-minimessage:4.17.0")
         compileOnly("net.kyori:adventure-platform-bukkit:4.3.3")
+        implementation("com.github.NahuLD.folia-scheduler-wrapper:folia-scheduler-wrapper:v0.0.3")
 
-        annotationProcessor("org.projectlombok:lombok:1.18.34")
+    annotationProcessor("org.projectlombok:lombok:1.18.34")
         testCompileOnly("org.projectlombok:lombok:1.18.34")
         testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
 
@@ -135,6 +145,7 @@ tasks {
         relocate("dev.triumphteam.gui", "com.hibiscusmc.hmccosmetics.shaded.gui")
         relocate("com.owen1212055.particlehelper", "com.hibiscusmc.hmccosmetics.shaded.particlehelper")
         relocate("com.ticxo.playeranimator", "com.hibiscusmc.hmccosmetics.shaded.playeranimator")
+        relocate("com.github.NahuLD.folia-scheduler-wrapper", "com.hibiscusmc.hmccosmetics.shaded.folia-scheduler-wrapper")
         archiveFileName.set("HMCCosmeticsRemapped-${project.version}.jar")
 
         dependencies {
@@ -162,8 +173,9 @@ bukkit {
     apiVersion = "1.19"
     authors = listOf("LoJoSho")
     depend = listOf("HibiscusCommons", "ProtocolLib")
-    softDepend = listOf("ModelEngine", "Oraxen", "ItemsAdder", "Geary", "HMCColor", "WorldGuard", "MythicMobs", "PlaceholderAPI", "SuperVanish", "PremiumVanish", "LibsDisguises", "Denizen", "MMOItems", "Eco")
+    softDepend = listOf("PacketEvents","ModelEngine", "Oraxen", "ItemsAdder", "Geary", "HMCColor", "WorldGuard", "MythicMobs", "PlaceholderAPI", "SuperVanish", "PremiumVanish", "LibsDisguises", "Denizen", "MMOItems", "Eco")
     version = "${project.version}"
+    foliaSupported = true
     loadBefore = listOf(
         "Cosmin" // Fixes an issue with Cosmin loading before and taking /cosmetic, when messing with what we do.
     )

@@ -22,6 +22,8 @@ import com.hibiscusmc.hmccosmetics.util.HMCCInventoryUtils;
 import com.hibiscusmc.hmccosmetics.util.MessagesUtil;
 import com.hibiscusmc.hmccosmetics.util.HMCCPlayerUtils;
 import com.hibiscusmc.hmccosmetics.util.packets.HMCCPacketManager;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
+import io.github.retrooper.packetevents.util.folia.TaskWrapper;
 import lombok.Getter;
 import me.lojosho.hibiscuscommons.hooks.Hooks;
 import me.lojosho.hibiscuscommons.util.InventoryUtils;
@@ -48,7 +50,6 @@ public class CosmeticUser {
 
     @Getter
     private final UUID uniqueId;
-    private int taskId;
     private final HashMap<CosmeticSlot, Cosmetic> playerCosmetics = new HashMap<>();
     private UserWardrobeManager userWardrobeManager;
     private UserBalloonManager userBalloonManager;
@@ -62,6 +63,8 @@ public class CosmeticUser {
     private final HashMap<CosmeticSlot, Color> colors = new HashMap<>();
     // Cosmetic caches
     private final HashMap<String, ItemStack> cosmeticItems = new HashMap<>();
+    private int taskId;
+    private TaskWrapper foliaTask;
 
     public CosmeticUser(UUID uuid) {
         this.uniqueId = uuid;
@@ -74,18 +77,42 @@ public class CosmeticUser {
         Runnable run = () -> {
             MessagesUtil.sendDebugMessages("Tick[uuid=" + uniqueId + "]", Level.INFO);
             updateCosmetic();
-            if (isHidden() && !getUserEmoteManager().isPlayingEmote() && !getCosmetics().isEmpty()) MessagesUtil.sendActionBar(getPlayer(), "hidden-cosmetics");
+            if (isHidden() && !getUserEmoteManager().isPlayingEmote() && !getCosmetics().isEmpty()) {
+                MessagesUtil.sendActionBar(getPlayer(), "hidden-cosmetics");
+            }
         };
 
         int tickPeriod = Settings.getTickPeriod();
         if (tickPeriod > 0) {
-            BukkitTask task = Bukkit.getScheduler().runTaskTimer(HMCCosmeticsPlugin.getInstance(), run, 0, tickPeriod);
-            taskId = task.getTaskId();
+            if (FoliaScheduler.isFolia()) {
+                // Use Folia scheduler
+                foliaTask = FoliaScheduler.getGlobalRegionScheduler().runAtFixedRate(
+                    HMCCosmeticsPlugin.getInstance(),
+                    (t) -> run.run(),
+                    1L,
+                    tickPeriod
+                );
+            } else {
+                // Use Bukkit scheduler
+                BukkitTask task = Bukkit.getScheduler().runTaskTimer(
+                    HMCCosmeticsPlugin.getInstance(),
+                    run,
+                    0L,
+                    tickPeriod
+                );
+                taskId = task.getTaskId();
+            }
         }
     }
 
     public void destroy() {
-        Bukkit.getScheduler().cancelTask(taskId);
+        if (FoliaScheduler.isFolia()) {
+            if (foliaTask != null) {
+                foliaTask.cancel();
+            }
+        } else {
+            Bukkit.getScheduler().cancelTask(taskId);
+        }
         despawnBackpack();
         despawnBalloon();
     }
@@ -126,7 +153,8 @@ public class CosmeticUser {
             }
             if (cosmetic.getSlot() == CosmeticSlot.BALLOON) {
                 CosmeticBalloonType balloonType = (CosmeticBalloonType) cosmetic;
-                spawnBalloon(balloonType);
+                FoliaScheduler.getRegionScheduler().run(HMCCosmeticsPlugin.getInstance(), getPlayer().getLocation(), (t) ->
+                spawnBalloon(balloonType));
             }
         }
         // API
@@ -380,7 +408,7 @@ public class CosmeticUser {
                     WardrobeSettings.getTransitionStay(),
                     WardrobeSettings.getTransitionFadeOut()
             );
-            Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> {
+            FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> {
                 userWardrobeManager.end();
                 userWardrobeManager = null;
             }, WardrobeSettings.getTransitionDelay());
@@ -419,14 +447,17 @@ public class CosmeticUser {
 
         org.bukkit.entity.Entity entity = getEntity();
 
-        UserBalloonManager userBalloonManager1 = new UserBalloonManager(this, entity.getLocation());
-        userBalloonManager1.getModelEntity().teleport(entity.getLocation().add(cosmeticBalloonType.getBalloonOffset()));
+        FoliaScheduler.getEntityScheduler().run(entity, HMCCosmeticsPlugin.getInstance(), (t) -> {
 
-        userBalloonManager1.spawnModel(cosmeticBalloonType, getCosmeticColor(cosmeticBalloonType.getSlot()));
-        userBalloonManager1.addPlayerToModel(this, cosmeticBalloonType, getCosmeticColor(cosmeticBalloonType.getSlot()));
+            UserBalloonManager userBalloonManager1 = new UserBalloonManager(this, entity.getLocation());
+            userBalloonManager1.getModelEntity().teleportAsync(entity.getLocation().add(cosmeticBalloonType.getBalloonOffset()));
 
-        this.userBalloonManager = userBalloonManager1;
-        //this.userBalloonManager = NMSHandlers.getHandler().spawnBalloon(this, cosmeticBalloonType);
+            userBalloonManager1.spawnModel(cosmeticBalloonType, getCosmeticColor(cosmeticBalloonType.getSlot()));
+            userBalloonManager1.addPlayerToModel(this, cosmeticBalloonType, getCosmeticColor(cosmeticBalloonType.getSlot()));
+
+            this.userBalloonManager = userBalloonManager1;
+            //this.userBalloonManager = NMSHandlers.getHandler().spawnBalloon(this, cosmeticBalloonType);
+        },null);
     }
 
     public void despawnBalloon() {

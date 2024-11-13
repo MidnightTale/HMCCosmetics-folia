@@ -7,6 +7,7 @@ import com.hibiscusmc.hmccosmetics.cosmetic.CosmeticSlot;
 import com.hibiscusmc.hmccosmetics.cosmetic.Cosmetics;
 import com.hibiscusmc.hmccosmetics.user.CosmeticUser;
 import com.hibiscusmc.hmccosmetics.util.MessagesUtil;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.apache.commons.lang3.EnumUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -101,7 +102,7 @@ public abstract class Data {
         if (!hiddenReason.isEmpty()) {
             for (CosmeticUser.HiddenReason reason : hiddenReason) user.silentlyAddHideFlag(reason);
         } else {
-            Bukkit.getScheduler().runTask(HMCCosmeticsPlugin.getInstance(), () -> {
+            FoliaScheduler.getGlobalRegionScheduler().run(HMCCosmeticsPlugin.getInstance(), (t) -> {
                 // Handle gamemode check
                 if (user.getPlayer() != null && Settings.isDisabledGamemodesEnabled() && Settings.getDisabledGamemodes().contains(user.getPlayer().getGameMode().toString())) {
                     MessagesUtil.sendDebugMessages("Hiding Cosmetics due to gamemode");

@@ -1,10 +1,14 @@
 package com.hibiscusmc.hmccosmetics.cosmetic.types;
 
+import com.hibiscusmc.hmccosmetics.HMCCosmeticsPlugin;
 import com.hibiscusmc.hmccosmetics.config.Settings;
 import com.hibiscusmc.hmccosmetics.cosmetic.Cosmetic;
 import com.hibiscusmc.hmccosmetics.user.CosmeticUser;
 import com.hibiscusmc.hmccosmetics.user.manager.UserBalloonManager;
+import com.hibiscusmc.hmccosmetics.util.HMCCPlayerUtils;
+import com.hibiscusmc.hmccosmetics.util.MessagesUtil;
 import com.hibiscusmc.hmccosmetics.util.packets.HMCCPacketManager;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import lombok.Getter;
 import me.lojosho.shaded.configurate.ConfigurationNode;
 import me.lojosho.shaded.configurate.serialize.SerializationException;
@@ -60,8 +64,10 @@ public class CosmeticBalloonType extends Cosmetic {
         if (entity == null || userBalloonManager == null) return;
         if (user.isInWardrobe()) return;
 
-        if (!userBalloonManager.getModelEntity().isValid()) {
-            user.respawnBalloon();
+        if (userBalloonManager.getModelEntity().getLocation().getWorld() != entity.getWorld()) {
+            MessagesUtil.sendDebugMessages("Model Entity: " + userBalloonManager.getModelEntity().getLocation().getWorld() + "// Player" + entity.getWorld());
+            FoliaScheduler.getEntityScheduler().run(userBalloonManager.getModelEntity(), HMCCosmeticsPlugin.getInstance(), (t) ->
+            user.respawnBalloon(),null);
             return;
         }
 
@@ -73,7 +79,7 @@ public class CosmeticBalloonType extends Cosmetic {
         List<Player> viewer = HMCCPacketManager.getViewers(entity.getLocation());
 
         if (entity.getLocation().getWorld() != userBalloonManager.getLocation().getWorld()) {
-            userBalloonManager.getModelEntity().teleport(newLocation);
+            userBalloonManager.getModelEntity().teleportAsync(newLocation);
             HMCCPacketManager.sendTeleportPacket(userBalloonManager.getPufferfishBalloonId(), newLocation, false, viewer);
             return;
         }

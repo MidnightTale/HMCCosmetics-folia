@@ -27,6 +27,7 @@ import com.hibiscusmc.hmccosmetics.user.manager.UserWardrobeManager;
 import com.hibiscusmc.hmccosmetics.util.HMCCInventoryUtils;
 import com.hibiscusmc.hmccosmetics.util.MessagesUtil;
 import com.hibiscusmc.hmccosmetics.util.packets.HMCCPacketManager;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import me.lojosho.hibiscuscommons.api.events.*;
 import me.lojosho.hibiscuscommons.hooks.items.HookItemAdder;
 import me.lojosho.hibiscuscommons.util.packets.PacketManager;
@@ -93,7 +94,7 @@ public class PlayerGameListener implements Listener {
         CosmeticSlot cosmeticSlot = HMCCInventoryUtils.BukkitCosmeticSlot(slot);
         if (cosmeticSlot == null) return;
         if (!user.hasCosmeticInSlot(cosmeticSlot)) return;
-        Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> {
+        FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> {
             user.updateCosmetic(cosmeticSlot);
         }, 1);
         MessagesUtil.sendDebugMessages("Event fired, updated cosmetic " + cosmeticSlot);
@@ -127,8 +128,7 @@ public class PlayerGameListener implements Listener {
         if (user.isInWardrobe()) {
             user.leaveWardrobe();
         }
-
-        Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> {
+        FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> {
             if (user.getEntity() == null || user.isInWardrobe()) return; // fixes disconnecting when in wardrobe (the entity stuff)
             if (Settings.getDisabledWorlds().contains(user.getEntity().getLocation().getWorld().getName())) {
                 user.hideCosmetics(CosmeticUser.HiddenReason.WORLD);
@@ -168,8 +168,8 @@ public class PlayerGameListener implements Listener {
 
         if (user.hasCosmeticInSlot(CosmeticSlot.BALLOON)) {
             user.despawnBalloon();
-
-            Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> {
+            Location location = event.getPlayer().getLocation();
+            FoliaScheduler.getRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), location, (t) -> {
                 user.spawnBalloon((CosmeticBalloonType) user.getCosmetic(CosmeticSlot.BALLOON));
                 user.updateCosmetic();
             }, 4);
@@ -266,8 +266,7 @@ public class PlayerGameListener implements Listener {
             MessagesUtil.sendDebugMessages("No cosmetic in " + cosmeticSlot);
             return;
         }
-
-        Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> {
+        FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> {
             MessagesUtil.sendDebugMessages("PlayerItemDamageEvent UpdateCosmetic " + cosmeticSlot);
             user.updateCosmetic(cosmeticSlot);
         }, 2);
@@ -284,7 +283,8 @@ public class PlayerGameListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> {
+        FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> {
+
             if (user.getEntity() == null) return; // Player has likely logged off
             user.updateCosmetic(CosmeticSlot.OFFHAND);
             List<Player> viewers = HMCCPacketManager.getViewers(user.getEntity().getLocation());
@@ -326,7 +326,7 @@ public class PlayerGameListener implements Listener {
 
         //NMSHandlers.getHandler().slotUpdate(event.getPlayer(), event.getPreviousSlot());
         if (user.hasCosmeticInSlot(CosmeticSlot.MAINHAND)) {
-            Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> {
+            FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> {
                 user.updateCosmetic(CosmeticSlot.MAINHAND);
             }, 2);
         }
@@ -390,7 +390,7 @@ public class PlayerGameListener implements Listener {
             user.getBalloonManager().getPufferfish().spawnPufferfish(npclocation.clone().add(cosmetic.getBalloonOffset()), viewer);
             HMCCPacketManager.sendLeashPacket(user.getBalloonManager().getPufferfishBalloonId(), user.getWardrobeManager().getNPC_ID(), viewer);
             HMCCPacketManager.sendTeleportPacket(user.getBalloonManager().getPufferfishBalloonId(), npclocation, false, viewer);
-            user.getBalloonManager().getModelEntity().teleport(npclocation);
+            user.getBalloonManager().getModelEntity().teleportAsync(npclocation);
         }
     }
 
@@ -495,7 +495,7 @@ public class PlayerGameListener implements Listener {
                 CosmeticSlot cosmeticSlot = HMCCInventoryUtils.NMSCosmeticSlot(slotClicked);
                 if (cosmeticSlot == null) return;
                 if (!user.hasCosmeticInSlot(cosmeticSlot)) return;
-                Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> user.updateCosmetic(cosmeticSlot), 1);
+                FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> user.updateCosmetic(cosmeticSlot), 1);
                 MessagesUtil.sendDebugMessages("Packet fired, updated cosmetic " + cosmeticSlot);
             }
         });
@@ -734,7 +734,7 @@ public class PlayerGameListener implements Listener {
                 CosmeticUser user = CosmeticUsers.getUser(player);
                 if (user == null) return;
                 if (user.isBackpackSpawned()) {
-                    Bukkit.getScheduler().runTask(HMCCosmeticsPlugin.getInstance(), () -> user.updateCosmetic(CosmeticSlot.BACKPACK));
+                    FoliaScheduler.getGlobalRegionScheduler().run(HMCCosmeticsPlugin.getInstance(), (t) -> user.updateCosmetic(CosmeticSlot.BACKPACK));
                 }
             }
         });

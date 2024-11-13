@@ -12,6 +12,7 @@ import com.ticxo.modelengine.api.entity.data.BukkitEntityData;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 import com.ticxo.modelengine.api.nms.RenderParsers;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import lombok.Getter;
 import me.lojosho.hibiscuscommons.hooks.Hooks;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
@@ -39,6 +40,7 @@ public class UserBalloonManager {
     private UserBalloonPufferfish pufferfish;
     private final ArmorStand modelEntity;
     public UserBalloonManager(CosmeticUser user, @NotNull Location location) {
+
         this.user = user;
         this.pufferfish = new UserBalloonPufferfish(user.getUniqueId(), NMSHandlers.getHandler().getNextEntityId(), UUID.randomUUID());
         this.modelEntity = location.getWorld().spawn(location, ArmorStand.class, (e) -> {
@@ -54,7 +56,7 @@ public class UserBalloonManager {
     }
 
     public void spawnModel(@NotNull CosmeticBalloonType cosmeticBalloonType, Color color) {
-        // redo this
+        // redo
         if (cosmeticBalloonType.getModelName() != null && Hooks.isActiveHook("ModelEngine")) {
             balloonType = BalloonType.MODELENGINE;
         } else {
@@ -174,7 +176,7 @@ public class UserBalloonManager {
     }
 
     public void setLocation(Location location) {
-        this.getModelEntity().teleport(location);
+        this.getModelEntity().teleportAsync(location);
     }
 
     public void setVelocity(Vector vector) {

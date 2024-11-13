@@ -4,6 +4,7 @@ import com.hibiscusmc.hmccosmetics.HMCCosmeticsPlugin;
 import com.hibiscusmc.hmccosmetics.cosmetic.Cosmetic;
 import com.hibiscusmc.hmccosmetics.cosmetic.CosmeticSlot;
 import com.hibiscusmc.hmccosmetics.user.CosmeticUser;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 
@@ -19,8 +20,7 @@ public abstract class SQLData extends Data {
     @SuppressWarnings({"resource"}) // Duplicate is from deprecated InternalData
     public CosmeticUser get(UUID uniqueId) {
         CosmeticUser user = new CosmeticUser(uniqueId);
-
-        Bukkit.getScheduler().runTaskAsynchronously(HMCCosmeticsPlugin.getInstance(), () -> {
+        FoliaScheduler.getAsyncScheduler().runNow(HMCCosmeticsPlugin.getInstance(), (t) -> {
             PreparedStatement preparedStatement = null;
             try {
                 preparedStatement = preparedStatement("SELECT * FROM COSMETICDATABASE WHERE UUID = ?;");
@@ -37,7 +37,7 @@ public abstract class SQLData extends Data {
                         }
                     }
                     // Run a task on the main thread, adding the cosmetics to the player
-                    Bukkit.getScheduler().runTask(HMCCosmeticsPlugin.getInstance(), () -> {
+                    FoliaScheduler.getGlobalRegionScheduler().run(HMCCosmeticsPlugin.getInstance(), (b) -> {
                         // This can not be async.
                         for (Cosmetic cosmetic : addedCosmetics.keySet()) {
                             user.addPlayerCosmetic(cosmetic, addedCosmetics.get(cosmetic));
@@ -75,7 +75,7 @@ public abstract class SQLData extends Data {
             }
         };
         if (!HMCCosmeticsPlugin.getInstance().isDisabled()) {
-            Bukkit.getScheduler().runTaskAsynchronously(HMCCosmeticsPlugin.getInstance(), run);
+            FoliaScheduler.getAsyncScheduler().runNow(HMCCosmeticsPlugin.getInstance(), (t) -> run.run());
         } else {
             run.run();
         }

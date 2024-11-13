@@ -2,6 +2,7 @@ package com.hibiscusmc.hmccosmetics.database.types;
 
 import com.hibiscusmc.hmccosmetics.HMCCosmeticsPlugin;
 import com.hibiscusmc.hmccosmetics.util.MessagesUtil;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.Bukkit;
 
 import java.io.File;
@@ -47,7 +48,7 @@ public class SQLiteData extends SQLData {
     @Override
     @SuppressWarnings("resource")
     public void clear(UUID uniqueId) {
-        Bukkit.getScheduler().runTaskAsynchronously(HMCCosmeticsPlugin.getInstance(), () -> {
+        FoliaScheduler.getAsyncScheduler().runNow(HMCCosmeticsPlugin.getInstance(), (t) -> {
             PreparedStatement preparedSt = null;
             try {
                 preparedSt = preparedStatement("DELETE FROM COSMETICDATABASE WHERE UUID=?;");

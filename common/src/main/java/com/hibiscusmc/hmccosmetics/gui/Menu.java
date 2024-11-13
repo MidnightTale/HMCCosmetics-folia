@@ -13,6 +13,8 @@ import com.hibiscusmc.hmccosmetics.util.MessagesUtil;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
+import io.github.retrooper.packetevents.util.folia.TaskWrapper;
 import lombok.Getter;
 import me.lojosho.hibiscuscommons.config.serializer.ItemSerializer;
 import me.lojosho.hibiscuscommons.hooks.Hooks;
@@ -146,34 +148,60 @@ public class Menu {
 
         gui.setDefaultClickAction(event -> event.setCancelled(true));
 
-        AtomicInteger taskid = new AtomicInteger(-1);
+        AtomicInteger bukkitTaskId = new AtomicInteger(-1);
+        TaskWrapper[] foliaTask = new TaskWrapper[1];
+
         gui.setOpenGuiAction(event -> {
             Runnable run = () -> {
-                if (gui.getInventory().getViewers().isEmpty() && taskid.get() != -1) {
-                    Bukkit.getScheduler().cancelTask(taskid.get());
+                if (gui.getInventory().getViewers().isEmpty()) {
+                    if (FoliaScheduler.isFolia()) {
+                        if (foliaTask[0] != null) {
+                            foliaTask[0].cancel();
+                        }
+                    } else if (bukkitTaskId.get() != -1) {
+                        Bukkit.getScheduler().cancelTask(bukkitTaskId.get());
+                    }
                 }
-
                 updateMenu(user, gui);
             };
 
             if (refreshRate != -1) {
-                taskid.set(Bukkit.getScheduler().scheduleSyncRepeatingTask(HMCCosmeticsPlugin.getInstance(), run, 0, refreshRate));
+                if (FoliaScheduler.isFolia()) {
+                    foliaTask[0] = FoliaScheduler.getGlobalRegionScheduler().runAtFixedRate(
+                        HMCCosmeticsPlugin.getInstance(),
+                        task -> run.run(),
+                        1L,
+                        refreshRate
+                    );
+                } else {
+                    bukkitTaskId.set(Bukkit.getScheduler().scheduleSyncRepeatingTask(
+                        HMCCosmeticsPlugin.getInstance(),
+                        run,
+                        0,
+                        refreshRate
+                    ));
+                }
             } else {
                 run.run();
             }
         });
 
         gui.setCloseGuiAction(event -> {
-            if (taskid.get() != -1) Bukkit.getScheduler().cancelTask(taskid.get());
+            if (FoliaScheduler.isFolia()) {
+                if (foliaTask[0] != null) {
+                    foliaTask[0].cancel();
+                }
+            } else if (bukkitTaskId.get() != -1) {
+                Bukkit.getScheduler().cancelTask(bukkitTaskId.get());
+            }
         });
 
         // API
         PlayerMenuOpenEvent event = new PlayerMenuOpenEvent(user, this);
-        Bukkit.getScheduler().runTask(HMCCosmeticsPlugin.getInstance(), () -> Bukkit.getPluginManager().callEvent(event));
+        FoliaScheduler.getGlobalRegionScheduler().run(HMCCosmeticsPlugin.getInstance(), (t) -> Bukkit.getPluginManager().callEvent(event));
         if (event.isCancelled()) return;
         // Internal
-
-        Bukkit.getScheduler().runTask(HMCCosmeticsPlugin.getInstance(), () -> {
+        FoliaScheduler.getGlobalRegionScheduler().run(HMCCosmeticsPlugin.getInstance(), (t) -> {
             gui.open(player);
             updateMenu(user, gui); // fixes shading? I know I do this twice but it's easier than writing a whole new class to deal with this shit
         });

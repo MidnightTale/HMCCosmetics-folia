@@ -9,6 +9,7 @@ import com.hibiscusmc.hmccosmetics.user.CosmeticUser;
 import com.hibiscusmc.hmccosmetics.user.CosmeticUsers;
 import com.hibiscusmc.hmccosmetics.user.manager.UserEmoteManager;
 import com.hibiscusmc.hmccosmetics.util.MessagesUtil;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -40,7 +41,7 @@ public class PlayerConnectionListener implements Listener {
             MessagesUtil.sendDebugMessages("Run User Join");
 
             // And finally, launch an update for the cosmetics they have.
-            Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> {
+            FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> {
                 if (user.getPlayer() == null) return;
                 user.updateCosmetic();
             }, 4);
@@ -48,7 +49,7 @@ public class PlayerConnectionListener implements Listener {
 
         if (DatabaseSettings.isEnabledDelay()) {
             MessagesUtil.sendDebugMessages("Delay Enabled with " + DatabaseSettings.getDelayLength() + " ticks");
-            Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), run, DatabaseSettings.getDelayLength());
+            FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> run.run(), DatabaseSettings.getDelayLength());
         } else {
             run.run();
         }

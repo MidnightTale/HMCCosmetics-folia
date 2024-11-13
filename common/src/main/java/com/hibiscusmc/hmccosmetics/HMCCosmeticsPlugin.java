@@ -34,6 +34,8 @@ import me.lojosho.shaded.configurate.ConfigurateException;
 import me.lojosho.shaded.configurate.ConfigurationOptions;
 import me.lojosho.shaded.configurate.yaml.NodeStyle;
 import me.lojosho.shaded.configurate.yaml.YamlConfigurationLoader;
+import me.nahu.scheduler.wrapper.WrappedScheduler;
+import me.nahu.scheduler.wrapper.WrappedSchedulerBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -47,6 +49,8 @@ public final class HMCCosmeticsPlugin extends HibiscusPlugin {
 
     private static HMCCosmeticsPlugin instance;
     private static YamlConfigurationLoader configLoader;
+    public WrappedScheduler scheduler;
+    public WrappedSchedulerBuilder schedulerBuilder;
 
     public HMCCosmeticsPlugin() {
         super(13873, 1879);
@@ -57,6 +61,8 @@ public final class HMCCosmeticsPlugin extends HibiscusPlugin {
     public void onStart() {
         // Plugin startup logic
         instance = this;
+        schedulerBuilder = WrappedSchedulerBuilder.builder().plugin(instance);
+        scheduler = schedulerBuilder.build();
 
         // File setup
         saveDefaultConfig();

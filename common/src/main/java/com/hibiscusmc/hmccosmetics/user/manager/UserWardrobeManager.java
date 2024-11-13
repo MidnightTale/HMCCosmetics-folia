@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.packets.PacketManager;
+import me.nahu.scheduler.wrapper.runnable.WrappedRunnable;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -31,7 +32,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -111,7 +112,7 @@ public class UserWardrobeManager {
             HMCCPacketManager.sendLookPacket(ARMORSTAND_ID, viewingLocation, viewer);
 
             // Player
-            user.getPlayer().teleport(viewingLocation, PlayerTeleportEvent.TeleportCause.PLUGIN);
+            user.getPlayer().teleportAsync(viewingLocation, PlayerTeleportEvent.TeleportCause.PLUGIN);
             user.getPlayer().setInvisible(true);
             HMCCPacketManager.gamemodeChangePacket(player, 3);
             HMCCPacketManager.sendCameraPacket(ARMORSTAND_ID, viewer);
@@ -124,7 +125,7 @@ public class UserWardrobeManager {
             HMCCPacketManager.sendFakePlayerInfoPacket(player, NPC_ID, WARDROBE_UUID, npcName, viewer);
 
             // NPC 2
-            Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> {
+            FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> {
                 if (!user.isInWardrobe()) return; // If a player exits the wardrobe right away, no need to spawn the NPC
                 HMCCPacketManager.sendFakePlayerSpawnPacket(npcLocation, WARDROBE_UUID, NPC_ID, viewer);
                 HMCCPacketManager.sendPlayerOverlayPacket(NPC_ID, viewer);
@@ -157,7 +158,7 @@ public class UserWardrobeManager {
 
                     Location balloonLocation = npcLocation.clone().add(cosmetic.getBalloonOffset());
                     HMCCPacketManager.sendTeleportPacket(user.getBalloonManager().getPufferfishBalloonId(), balloonLocation, false, viewer);
-                    user.getBalloonManager().getModelEntity().teleport(balloonLocation);
+                    user.getBalloonManager().getModelEntity().teleportAsync(balloonLocation);
                     user.getBalloonManager().setLocation(balloonLocation);
                 }
             }
@@ -191,7 +192,9 @@ public class UserWardrobeManager {
                     WardrobeSettings.getTransitionStay(),
                     WardrobeSettings.getTransitionFadeOut()
             );
-            Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), run, WardrobeSettings.getTransitionDelay());
+            FoliaScheduler.getGlobalRegionScheduler().runDelayed(HMCCosmeticsPlugin.getInstance(), (t) -> {
+                run.run();
+            }, WardrobeSettings.getTransitionDelay());
         } else {
             run.run();
         }
@@ -256,7 +259,7 @@ public class UserWardrobeManager {
                 //PacketManager.sendLeashPacket(VIEWER.getBalloonEntity().getPufferfishBalloonId(), player.getEntityId(), viewer);
             }
 
-            player.teleport(Objects.requireNonNullElseGet(exitLocation, () -> player.getWorld().getSpawnLocation()), PlayerTeleportEvent.TeleportCause.PLUGIN);
+            player.teleportAsync(Objects.requireNonNullElseGet(exitLocation, () -> player.getWorld().getSpawnLocation()), PlayerTeleportEvent.TeleportCause.PLUGIN);
 
             HashMap<EquipmentSlot, ItemStack> items = new HashMap<>();
             for (EquipmentSlot slot : HMCCInventoryUtils.getPlayerArmorSlots()) {
@@ -284,7 +287,7 @@ public class UserWardrobeManager {
     public void update() {
         final AtomicInteger data = new AtomicInteger();
 
-        BukkitRunnable runnable = new BukkitRunnable() {
+        WrappedRunnable runnable = new WrappedRunnable() {
             @Override
             public void run() {
                 Player player = user.getPlayer();
@@ -340,7 +343,7 @@ public class UserWardrobeManager {
             }
         };
 
-        runnable.runTaskTimer(HMCCosmeticsPlugin.getInstance(), 0, 2);
+        runnable.runTaskTimer(HMCCosmeticsPlugin.getInstance().scheduler, 1, 2);
     }
 
     public void setWardrobeStatus(WardrobeStatus status) {

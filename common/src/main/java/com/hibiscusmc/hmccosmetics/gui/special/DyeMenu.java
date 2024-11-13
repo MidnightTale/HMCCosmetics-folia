@@ -7,6 +7,7 @@ import com.hibiscusmc.hmccosmetics.HMCCosmeticsPlugin;
 import com.hibiscusmc.hmccosmetics.config.Settings;
 import com.hibiscusmc.hmccosmetics.cosmetic.Cosmetic;
 import com.hibiscusmc.hmccosmetics.user.CosmeticUser;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import me.lojosho.hibiscuscommons.hooks.Hooks;
 import me.lojosho.hibiscuscommons.util.ColorBuilder;
 import me.lojosho.hibiscuscommons.util.StringUtils;
@@ -69,9 +70,9 @@ public class DyeMenu {
         Player player = user.getPlayer();
         user.addPlayerCosmetic(cosmetic, color);
         player.setItemOnCursor(new ItemStack(Material.AIR));
-        Bukkit.getScheduler().runTaskLater(HMCCosmeticsPlugin.getInstance(), () -> {
-            player.closeInventory();
-            user.updateCosmetic(cosmetic.getSlot());
-        }, 2);
+        FoliaScheduler.getEntityScheduler().runDelayed(player, HMCCosmeticsPlugin.getInstance(), (t) -> {
+                player.closeInventory();
+                user.updateCosmetic(cosmetic.getSlot());
+        },null,2);
     }
 }

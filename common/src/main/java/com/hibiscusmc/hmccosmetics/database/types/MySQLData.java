@@ -3,6 +3,7 @@ package com.hibiscusmc.hmccosmetics.database.types;
 import com.hibiscusmc.hmccosmetics.HMCCosmeticsPlugin;
 import com.hibiscusmc.hmccosmetics.config.DatabaseSettings;
 import com.hibiscusmc.hmccosmetics.util.MessagesUtil;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,7 +60,7 @@ public class MySQLData extends SQLData {
 
     @Override
     public void clear(UUID uniqueId) {
-        Bukkit.getScheduler().runTaskAsynchronously(HMCCosmeticsPlugin.getInstance(), () -> {
+        FoliaScheduler.getAsyncScheduler().runNow(HMCCosmeticsPlugin.getInstance(), (t) -> {
             PreparedStatement preparedSt = null;
             try {
                 preparedSt = preparedStatement("DELETE FROM COSMETICDATABASE WHERE UUID=?;");
@@ -102,7 +103,7 @@ public class MySQLData extends SQLData {
     }
 
     public void close() {
-        Bukkit.getScheduler().runTaskAsynchronously(HMCCosmeticsPlugin.getInstance(), () -> {
+        FoliaScheduler.getAsyncScheduler().runNow(HMCCosmeticsPlugin.getInstance(), (t) -> {
             try {
                 if (connection == null) throw new NullPointerException("Connection is null");
                 connection.close();

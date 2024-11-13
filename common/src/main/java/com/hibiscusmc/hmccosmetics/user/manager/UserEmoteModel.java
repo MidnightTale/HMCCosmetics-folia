@@ -7,6 +7,7 @@ import com.hibiscusmc.hmccosmetics.util.HMCCServerUtils;
 import com.hibiscusmc.hmccosmetics.util.MessagesUtil;
 import com.hibiscusmc.hmccosmetics.util.packets.HMCCPacketManager;
 import com.ticxo.playeranimator.api.model.player.PlayerModel;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import me.lojosho.hibiscuscommons.util.ServerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -103,7 +104,7 @@ public class UserEmoteModel extends PlayerModel {
     public void stopAnimation() {
         emotePlaying = null;
         despawn();
-        Bukkit.getScheduler().runTask(HMCCosmeticsPlugin.getInstance(), () -> {
+        FoliaScheduler.getGlobalRegionScheduler().run(HMCCosmeticsPlugin.getInstance(), (t) -> {
             Player player = user.getPlayer();
             if (player == null) return;
 
